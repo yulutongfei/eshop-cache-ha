@@ -3,6 +3,7 @@ package com.roncoo.eshop.cache.ha.controller;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.roncoo.eshop.cache.ha.http.HttpClientUtils;
+import com.roncoo.eshop.cache.ha.hystrix.command.GetCityNameCommand;
 import com.roncoo.eshop.cache.ha.hystrix.command.GetProductInfoCommand;
 import com.roncoo.eshop.cache.ha.hystrix.command.GetProductInfosCommand;
 import com.roncoo.eshop.cache.ha.model.ProductInfo;
@@ -54,6 +55,12 @@ public class CacheController {
         ProductInfo productInfo = getProductInfoCommand.execute();
 
 //        Future<ProductInfo> future = getProductInfoCommand.queue();
+
+        Long cityId = productInfo.getCityId();
+
+        GetCityNameCommand getCityNameCommand = new GetCityNameCommand(cityId);
+        String cityName = getCityNameCommand.execute();
+        productInfo.setCityName(cityName);
 
         System.out.println(productInfo);
         return "success";

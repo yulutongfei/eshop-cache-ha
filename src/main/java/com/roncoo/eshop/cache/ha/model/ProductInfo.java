@@ -25,6 +25,10 @@ public class ProductInfo {
 
     private String modifiedTime;
 
+    private Long cityId;
+
+    private String cityName;
+
     @Override
     public String toString() {
         return "ProductInfo{" +
@@ -37,8 +41,26 @@ public class ProductInfo {
                 ", color='" + color + '\'' +
                 ", size='" + size + '\'' +
                 ", modifiedTime='" + modifiedTime + '\'' +
+                ", cityId=" + cityId +
+                ", cityName='" + cityName + '\'' +
                 ", shopId=" + shopId +
                 '}';
+    }
+
+    public String getCityName() {
+        return cityName;
+    }
+
+    public void setCityName(String cityName) {
+        this.cityName = cityName;
+    }
+
+    public Long getCityId() {
+        return cityId;
+    }
+
+    public void setCityId(Long cityId) {
+        this.cityId = cityId;
     }
 
     public String getModifiedTime() {
