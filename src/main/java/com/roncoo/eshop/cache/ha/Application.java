@@ -19,7 +19,7 @@ import javax.sql.DataSource;
  * @date 2021/9/19 16:32
  */
 @SpringBootApplication
-@MapperScan("com.roncoo.eshop.cache.mapper")
+@MapperScan("com.roncoo.eshop.cache.ha.mapper")
 public class Application {
 
     @Bean
