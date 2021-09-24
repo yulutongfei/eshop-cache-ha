@@ -74,24 +74,30 @@ public class CacheController {
     @RequestMapping("/getProductInfos")
     @ResponseBody
     public String getProductInfos(String productIds) {
-        HystrixObservableCommand<ProductInfo> getProductInfosCommand = new GetProductInfosCommand(productIds.split(","));
-        Observable<ProductInfo> observable = getProductInfosCommand.observe();
-        observable.subscribe(new Observer<ProductInfo>() {
-            @Override
-            public void onCompleted() {
-
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                throwable.printStackTrace();
-            }
-
-            @Override
-            public void onNext(ProductInfo productInfo) {
-                System.out.println(productInfo);
-            }
-        });
+//        HystrixObservableCommand<ProductInfo> getProductInfosCommand = new GetProductInfosCommand(productIds.split(","));
+//        Observable<ProductInfo> observable = getProductInfosCommand.observe();
+//        observable.subscribe(new Observer<ProductInfo>() {
+//            @Override
+//            public void onCompleted() {
+//
+//            }
+//
+//            @Override
+//            public void onError(Throwable throwable) {
+//                throwable.printStackTrace();
+//            }
+//
+//            @Override
+//            public void onNext(ProductInfo productInfo) {
+//                System.out.println(productInfo);
+//            }
+//        });
+        for (String productId : productIds.split(",")) {
+            GetProductInfoCommand command = new GetProductInfoCommand(Long.valueOf(productId));
+            ProductInfo productInfo = command.execute();
+            System.out.println(productInfo);
+            System.out.println(command.isResponseFromCache());
+        }
         return "success";
     }
 }

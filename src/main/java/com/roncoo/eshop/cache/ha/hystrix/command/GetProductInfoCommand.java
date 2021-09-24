@@ -26,6 +26,12 @@ public class GetProductInfoCommand extends HystrixCommand<ProductInfo> {
         String url = "http://127.0.0.1:8082/getProductInfo?productId=" + productId;
         String response = HttpClientUtils.sendGetRequest(url);
         System.out.println(response);
+        System.out.println("调用接口,查询商品数据,productId=" + productId);
         return JSONObject.parseObject(response, ProductInfo.class);
+    }
+
+    @Override
+    protected String getCacheKey() {
+        return "product_info_" + productId;
     }
 }
