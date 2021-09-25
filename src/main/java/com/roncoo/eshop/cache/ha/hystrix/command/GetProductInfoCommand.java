@@ -40,6 +40,8 @@ public class GetProductInfoCommand extends HystrixCommand<ProductInfo> {
                         .withExecutionTimeoutInMilliseconds(5000)
                         // fallback，sempahore限流，30个，避免太多的请求同时调用fallback被拒绝访问
                         .withFallbackIsolationSemaphoreMaxConcurrentRequests(30)
+                        // 超时时间
+                        .withExecutionTimeoutInMilliseconds(500)
                 )
         );
         this.productId = productId;
@@ -53,6 +55,9 @@ public class GetProductInfoCommand extends HystrixCommand<ProductInfo> {
         }
         if (productId.equals(-2L)) {
             Thread.sleep(2000);
+        }
+        if (productId.equals(-3L)) {
+            Thread.sleep(150);
         }
         String url = "http://127.0.0.1:8082/getProductInfo?productId=" + productId;
         String response = HttpClientUtils.sendGetRequest(url);
