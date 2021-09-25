@@ -3,6 +3,7 @@ package com.roncoo.eshop.cache.ha.controller;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.roncoo.eshop.cache.ha.http.HttpClientUtils;
+import com.roncoo.eshop.cache.ha.hystrix.command.GetBrandNameCommand;
 import com.roncoo.eshop.cache.ha.hystrix.command.GetCityNameCommand;
 import com.roncoo.eshop.cache.ha.hystrix.command.GetProductInfoCommand;
 import com.roncoo.eshop.cache.ha.hystrix.command.GetProductInfosCommand;
@@ -57,10 +58,15 @@ public class CacheController {
 //        Future<ProductInfo> future = getProductInfoCommand.queue();
 
         Long cityId = productInfo.getCityId();
+        Long brandId = productInfo.getBrandId();
 
         GetCityNameCommand getCityNameCommand = new GetCityNameCommand(cityId);
         String cityName = getCityNameCommand.execute();
         productInfo.setCityName(cityName);
+
+        GetBrandNameCommand getBrandNameCommand = new GetBrandNameCommand(brandId);
+        String brandName = getBrandNameCommand.execute();
+        productInfo.setBrandName(brandName);
 
         System.out.println(productInfo);
         return "success";
@@ -74,30 +80,30 @@ public class CacheController {
     @RequestMapping("/getProductInfos")
     @ResponseBody
     public String getProductInfos(String productIds) {
-//        HystrixObservableCommand<ProductInfo> getProductInfosCommand = new GetProductInfosCommand(productIds.split(","));
-//        Observable<ProductInfo> observable = getProductInfosCommand.observe();
-//        observable.subscribe(new Observer<ProductInfo>() {
-//            @Override
-//            public void onCompleted() {
-//
-//            }
-//
-//            @Override
-//            public void onError(Throwable throwable) {
-//                throwable.printStackTrace();
-//            }
-//
-//            @Override
-//            public void onNext(ProductInfo productInfo) {
-//                System.out.println(productInfo);
-//            }
-//        });
-        for (String productId : productIds.split(",")) {
-            GetProductInfoCommand command = new GetProductInfoCommand(Long.valueOf(productId));
-            ProductInfo productInfo = command.execute();
-            System.out.println(productInfo);
-            System.out.println(command.isResponseFromCache());
-        }
+        HystrixObservableCommand<ProductInfo> getProductInfosCommand = new GetProductInfosCommand(productIds.split(","));
+        Observable<ProductInfo> observable = getProductInfosCommand.observe();
+        observable.subscribe(new Observer<ProductInfo>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                throwable.printStackTrace();
+            }
+
+            @Override
+            public void onNext(ProductInfo productInfo) {
+                System.out.println(productInfo);
+            }
+        });
+//        for (String productId : productIds.split(",")) {
+//            GetProductInfoCommand command = new GetProductInfoCommand(Long.valueOf(productId));
+//            ProductInfo productInfo = command.execute();
+//            System.out.println(productInfo);
+//            System.out.println(command.isResponseFromCache());
+//        }
         return "success";
     }
 }
