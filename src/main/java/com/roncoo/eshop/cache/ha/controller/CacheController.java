@@ -51,7 +51,7 @@ public class CacheController {
      */
     @RequestMapping("/getProductInfo")
     @ResponseBody
-    public String getProductInfo(Long productId) {
+    public ProductInfo getProductInfo(Long productId) {
         HystrixCommand<ProductInfo> getProductInfoCommand = new GetProductInfoCommand(productId);
         ProductInfo productInfo = getProductInfoCommand.execute();
 
@@ -68,8 +68,9 @@ public class CacheController {
         String brandName = getBrandNameCommand.execute();
         productInfo.setBrandName(brandName);
 
+        System.out.println("短路器是否打开:" + getProductInfoCommand.isCircuitBreakerOpen());
         System.out.println(productInfo);
-        return "success";
+        return productInfo;
     }
 
     /**
