@@ -3,6 +3,10 @@ package com.roncoo.eshop.cache.ha.hystrix.command;
 import com.alibaba.fastjson.JSONObject;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
+import com.netflix.hystrix.HystrixCommandKey;
+import com.netflix.hystrix.HystrixRequestCache;
+import com.netflix.hystrix.strategy.concurrency.HystrixConcurrencyStrategy;
+import com.netflix.hystrix.strategy.concurrency.HystrixConcurrencyStrategyDefault;
 import com.roncoo.eshop.cache.ha.cache.local.LocationCache;
 import com.roncoo.eshop.cache.ha.http.HttpClientUtils;
 import com.roncoo.eshop.cache.ha.model.ProductInfo;
@@ -15,10 +19,13 @@ import com.roncoo.eshop.cache.ha.model.ProductInfo;
  */
 public class GetProductInfoCommand extends HystrixCommand<ProductInfo> {
 
+    public static final HystrixCommandKey KEY = HystrixCommandKey.Factory.asKey("GetProductInfoGroup");
+
     private Long productId;
 
     public GetProductInfoCommand(Long productId) {
-        super(HystrixCommandGroupKey.Factory.asKey("GetProductInfoGroup"));
+        super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("GetProductInfoGroup"))
+                .andCommandKey(KEY));
         this.productId = productId;
     }
     @Override
@@ -33,5 +40,10 @@ public class GetProductInfoCommand extends HystrixCommand<ProductInfo> {
     @Override
     protected String getCacheKey() {
         return "product_info_" + productId;
+    }
+
+    public static void flushCache(Long productId) {
+        HystrixRequestCache.getInstance(KEY, HystrixConcurrencyStrategyDefault.getInstance())
+                .clear("product_info_" + productId);
     }
 }
