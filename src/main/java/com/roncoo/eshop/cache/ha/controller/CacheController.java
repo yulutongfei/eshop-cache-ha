@@ -1,19 +1,19 @@
 package com.roncoo.eshop.cache.ha.controller;
 
 import com.netflix.hystrix.HystrixCommand;
-import com.netflix.hystrix.HystrixObservableCommand;
 import com.roncoo.eshop.cache.ha.http.HttpClientUtils;
 import com.roncoo.eshop.cache.ha.hystrix.command.GetBrandNameCommand;
 import com.roncoo.eshop.cache.ha.hystrix.command.GetCityNameCommand;
 import com.roncoo.eshop.cache.ha.hystrix.command.GetProductInfoCommand;
-import com.roncoo.eshop.cache.ha.hystrix.command.GetProductInfosCommand;
+import com.roncoo.eshop.cache.ha.hystrix.command.GetProductInfoCollapser;
 import com.roncoo.eshop.cache.ha.model.ProductInfo;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import rx.Observable;
-import rx.Observer;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
@@ -81,30 +81,43 @@ public class CacheController {
     @RequestMapping("/getProductInfos")
     @ResponseBody
     public String getProductInfos(String productIds) {
-        HystrixObservableCommand<ProductInfo> getProductInfosCommand = new GetProductInfosCommand(productIds.split(","));
-        Observable<ProductInfo> observable = getProductInfosCommand.observe();
-        observable.subscribe(new Observer<ProductInfo>() {
-            @Override
-            public void onCompleted() {
-
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                throwable.printStackTrace();
-            }
-
-            @Override
-            public void onNext(ProductInfo productInfo) {
-                System.out.println(productInfo);
-            }
-        });
+//        HystrixObservableCommand<ProductInfo> getProductInfosCommand = new GetProductInfosCommand(productIds.split(","));
+//        Observable<ProductInfo> observable = getProductInfosCommand.observe();
+//        observable.subscribe(new Observer<ProductInfo>() {
+//            @Override
+//            public void onCompleted() {
+//
+//            }
+//
+//            @Override
+//            public void onError(Throwable throwable) {
+//                throwable.printStackTrace();
+//            }
+//
+//            @Override
+//            public void onNext(ProductInfo productInfo) {
+//                System.out.println(productInfo);
+//            }
+//        });
 //        for (String productId : productIds.split(",")) {
 //            GetProductInfoCommand command = new GetProductInfoCommand(Long.valueOf(productId));
 //            ProductInfo productInfo = command.execute();
 //            System.out.println(productInfo);
 //            System.out.println(command.isResponseFromCache());
 //        }
+        List<Future<ProductInfo>> futures = new ArrayList<Future<ProductInfo>>();
+        for (String productId : productIds.split(",")) {
+            GetProductInfoCollapser getProductInfoCollapser =
+                    new GetProductInfoCollapser(Long.valueOf(productId));
+            futures.add(getProductInfoCollapser.queue());
+        }
+        try {
+            for (Future<ProductInfo> future : futures) {
+                System.out.println(future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
         return "success";
     }
 }
