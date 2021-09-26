@@ -78,8 +78,44 @@ public class GetProductInfoCommand extends HystrixCommand<ProductInfo> {
 
     @Override
     protected ProductInfo getFallback() {
-        ProductInfo productInfo = new ProductInfo();
-        productInfo.setName("降级商品");
-        return productInfo;
+        return new FirstLevelFallbackCommand(productId).execute();
     }
+
+    private static class FirstLevelFallbackCommand extends HystrixCommand<ProductInfo> {
+
+        private Long productId;
+
+        public FirstLevelFallbackCommand(Long productId) {
+            // 第一级的降级策略,因为这个command是运行在fallback中的
+            // 所以至关重要的一点是,在做多级降级的时候,要将降级command的线程池单独做一个出来
+            // 如果主流程command都失败了,可能线程池都已经占满了
+            // 降级command必须用自己的独立的线程池
+            super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("ProductInfoService"))
+                    .andCommandKey(HystrixCommandKey.Factory.asKey("FirstLevelFallbackCommand"))
+                    .andThreadPoolKey(HystrixThreadPoolKey.Factory.asKey("FirstLevelFallbackPool")));
+            this.productId = productId;
+        }
+
+        @Override
+        protected ProductInfo run() throws Exception {
+            if (productId.equals(-2L)) {
+                // 模拟第二级降级失败
+                throw new Exception();
+            }
+            // 模拟第一级降级,从备用机房
+            String url = "http://127.0.0.1:8082/getProductInfo?productId=" + productId;
+            String response = HttpClientUtils.sendGetRequest(url);
+            System.out.println(response);
+            return JSONObject.parseObject(response, ProductInfo.class);
+        }
+
+        @Override
+        protected ProductInfo getFallback() {
+            // 第二级降级策略,第一级降级策略失败
+            ProductInfo productInfo = new ProductInfo();
+            productInfo.setName("二级降级商品");
+            return productInfo;
+        }
+    }
+
 }
