@@ -12,7 +12,7 @@ public class UpdateProductInfoCommand extends HystrixCommand<Boolean> {
 
     private Long productId;
 
-    protected UpdateProductInfoCommand(Long productId) {
+    public UpdateProductInfoCommand(Long productId) {
         super(HystrixCommandGroupKey.Factory.asKey("UpdateProductInfoGroup"));
         this.productId = productId;
     }
